@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
     steps:
       # 1️⃣ Checkout repository
@@ -54,9 +54,9 @@ jobs:
           cordova platform remove android || true
           cordova platform add android@14.0.0 --no-save
 
-      # 9️⃣ Build the APK (Cordova)
+      # 9️⃣ Build the APK (release APK)
       - name: Build Android APK
-        run: cordova build android --release
+        run: cordova build android --release -- --packageType=apk
 
       # 🔟 Upload APK artifact
       - name: Upload APK
