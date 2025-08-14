@@ -52,7 +52,8 @@ jobs:
       - name: Add Android platform
         run: |
           cordova platform remove android || true
-          cordova platform add android@11.1.0
+          cordova platform add android@14.0.0 --no-save
+
 
       # 9. Build the APK
       - name: Build Android APK
