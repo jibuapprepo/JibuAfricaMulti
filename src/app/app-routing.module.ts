@@ -12,21 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { InjectionToken, Injector, ModuleWithProviders, NgModule, Type } from '@angular/core';
 import {
-    RouterModule,
-    Route,
-    Routes,
-    ROUTES,
-    UrlMatcher,
-    UrlMatchResult,
-    UrlSegment,
-    UrlSegmentGroup,
-    DefaultExport,
-} from '@angular/router';
-import { Observable } from 'rxjs';
+  InjectionToken,
+  Injector,
+  ModuleWithProviders,
+  NgModule,
+  Type,
+} from "@angular/core";
+import {
+  RouterModule,
+  Route,
+  Routes,
+  ROUTES,
+  UrlMatcher,
+  UrlMatchResult,
+  UrlSegment,
+  UrlSegmentGroup,
+  DefaultExport,
+} from "@angular/router";
+import { Observable } from "rxjs";
 
-const modulesRoutes: WeakMap<InjectionToken<unknown>, ModuleRoutes> = new WeakMap();
+const modulesRoutes: WeakMap<
+  InjectionToken<unknown>,
+  ModuleRoutes
+> = new WeakMap();
 
 /**
  * Build app routes.
@@ -35,7 +44,7 @@ const modulesRoutes: WeakMap<InjectionToken<unknown>, ModuleRoutes> = new WeakMa
  * @returns App routes.
  */
 function buildAppRoutes(injector: Injector): Routes {
-    return injector.get<Routes[]>(APP_ROUTES, []).flat();
+  return injector.get<Routes[]>(APP_ROUTES, []).flat();
 }
 
 /**
@@ -45,57 +54,67 @@ function buildAppRoutes(injector: Injector): Routes {
  * @param condition Condition.
  * @returns Conditional url matcher.
  */
-function buildConditionalUrlMatcher(pathOrMatcher: string | UrlMatcher, condition: () => boolean): UrlMatcher {
-    // Create a matcher based on Angular's default matcher.
-    // see https://github.com/angular/angular/blob/10.0.x/packages/router/src/shared.ts#L127
-    return (segments: UrlSegment[], segmentGroup: UrlSegmentGroup, route: Route): UrlMatchResult | null => {
-        // If the condition isn't met, the route will never match.
-        if (!condition()) {
-            return null;
-        }
+function buildConditionalUrlMatcher(
+  pathOrMatcher: string | UrlMatcher,
+  condition: () => boolean,
+): UrlMatcher {
+  // Create a matcher based on Angular's default matcher.
+  // see https://github.com/angular/angular/blob/10.0.x/packages/router/src/shared.ts#L127
+  return (
+    segments: UrlSegment[],
+    segmentGroup: UrlSegmentGroup,
+    route: Route,
+  ): UrlMatchResult | null => {
+    // If the condition isn't met, the route will never match.
+    if (!condition()) {
+      return null;
+    }
 
-        // Use existing matcher if any.
-        if (typeof pathOrMatcher === 'function') {
-            return pathOrMatcher(segments, segmentGroup, route);
-        }
+    // Use existing matcher if any.
+    if (typeof pathOrMatcher === "function") {
+      return pathOrMatcher(segments, segmentGroup, route);
+    }
 
-        const path = pathOrMatcher;
-        const parts = path.split('/');
-        const isFullMatch = route.pathMatch === 'full';
-        const posParams: Record<string, UrlSegment> = {};
+    const path = pathOrMatcher;
+    const parts = path.split("/");
+    const isFullMatch = route.pathMatch === "full";
+    const posParams: Record<string, UrlSegment> = {};
 
-        // The path matches anything.
-        if (path === '') {
-            return (!isFullMatch || segments.length === 0) ? { consumed: [] } : null;
-        }
+    // The path matches anything.
+    if (path === "") {
+      return !isFullMatch || segments.length === 0 ? { consumed: [] } : null;
+    }
 
-        // The actual URL is shorter than the config, no match.
-        if (parts.length > segments.length) {
-            return null;
-        }
+    // The actual URL is shorter than the config, no match.
+    if (parts.length > segments.length) {
+      return null;
+    }
 
-        // The config is longer than the actual URL but we are looking for a full match, return null.
-        if (isFullMatch && (segmentGroup.hasChildren() || parts.length < segments.length)) {
-            return null;
-        }
+    // The config is longer than the actual URL but we are looking for a full match, return null.
+    if (
+      isFullMatch &&
+      (segmentGroup.hasChildren() || parts.length < segments.length)
+    ) {
+      return null;
+    }
 
-        // Check each config part against the actual URL.
-        for (let index = 0; index < parts.length; index++) {
-            const part = parts[index];
-            const segment = segments[index];
-            const isParameter = part.startsWith(':');
+    // Check each config part against the actual URL.
+    for (let index = 0; index < parts.length; index++) {
+      const part = parts[index];
+      const segment = segments[index];
+      const isParameter = part.startsWith(":");
 
-            if (isParameter) {
-                posParams[part.substring(1)] = segment;
-            } else if (part !== segment.path) {
-                // The actual URL part does not match the config, no match.
-                return null;
-            }
-        }
+      if (isParameter) {
+        posParams[part.substring(1)] = segment;
+      } else if (part !== segment.path) {
+        // The actual URL part does not match the config, no match.
+        return null;
+      }
+    }
 
-        // Return consumed segments with params.
-        return { consumed: segments.slice(0, parts.length), posParams };
-    };
+    // Return consumed segments with params.
+    return { consumed: segments.slice(0, parts.length), posParams };
+  };
 }
 
 /**
@@ -104,19 +123,26 @@ function buildConditionalUrlMatcher(pathOrMatcher: string | UrlMatcher, conditio
  * @deprecated since 5.0. Now pages are loaded using the loadComponent property. You can use LazyDefaultStandaloneComponent instead.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type LazyRoutesModule = Type<any> |
-    Routes |
-    Observable<Type<any> | // eslint-disable-line @typescript-eslint/no-explicit-any
-    Routes |
-    DefaultExport<Type<any>> | // eslint-disable-line @typescript-eslint/no-explicit-any
-    DefaultExport<Routes>> |
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Promise<Type<any> | Routes | DefaultExport<Type<any>> |DefaultExport<Routes>>;
+export type LazyRoutesModule =
+  | Type<any>
+  | Routes
+  | Observable<
+      | Type<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+      | Routes
+      | DefaultExport<Type<any>> // eslint-disable-line @typescript-eslint/no-explicit-any
+      | DefaultExport<Routes>
+    >
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | Promise<
+      Type<any> | Routes | DefaultExport<Type<any>> | DefaultExport<Routes>
+    >;
 
 /**
  * Type to declare lazy standalone component. Extracted from Angular's LoadComponent type with default class.
  */
-export type LazyDefaultStandaloneComponent = Promise<DefaultExport<Type<unknown>>>;
+export type LazyDefaultStandaloneComponent = Promise<
+  DefaultExport<Type<unknown>>
+>;
 
 /**
  * Build url matcher using a regular expression.
@@ -125,34 +151,37 @@ export type LazyDefaultStandaloneComponent = Promise<DefaultExport<Type<unknown>
  * @returns Url matcher.
  */
 export function buildRegExpUrlMatcher(regexp: RegExp): UrlMatcher {
-    return (segments: UrlSegment[]): UrlMatchResult | null => {
-        // Ignore empty paths.
-        if (segments.length === 0) {
-            return null;
-        }
+  return (segments: UrlSegment[]): UrlMatchResult | null => {
+    // Ignore empty paths.
+    if (segments.length === 0) {
+      return null;
+    }
 
-        const path = segments.map(segment => segment.path).join('/');
-        const match = regexp.exec(path)?.[0];
+    const path = segments.map((segment) => segment.path).join("/");
+    const match = regexp.exec(path)?.[0];
 
-        // Ignore paths that don't match the start of the url.
-        if (!match || !path.startsWith(match)) {
-            return null;
-        }
+    // Ignore paths that don't match the start of the url.
+    if (!match || !path.startsWith(match)) {
+      return null;
+    }
 
-        // Consume segments that match.
-        const [consumedSegments, consumedPath] = segments.slice(1).reduce(([segments, path], segment) => path === match
+    // Consume segments that match.
+    const [consumedSegments, consumedPath] = segments
+      .slice(1)
+      .reduce(
+        ([segments, path], segment) =>
+          path === match
             ? [segments, path]
-            : [
-                segments.concat(segment),
-                `${path}/${segment.path}`,
-            ], [[segments[0]] as UrlSegment[], segments[0].path]);
+            : [segments.concat(segment), `${path}/${segment.path}`],
+        [[segments[0]] as UrlSegment[], segments[0].path],
+      );
 
-        if (consumedPath !== match) {
-            return null;
-        }
+    if (consumedPath !== match) {
+      return null;
+    }
 
-        return { consumed: consumedSegments };
-    };
+    return { consumed: consumedSegments };
+  };
 }
 
 export type ModuleRoutes = { children: Routes; siblings: Routes };
@@ -165,21 +194,24 @@ export type ModuleRoutesConfig = Routes | Partial<ModuleRoutes>;
  * @param condition Condition to determine if routes should be activated or not.
  * @returns Conditional routes.
  */
-export function conditionalRoutes(routes: Routes, condition: () => boolean): Routes {
-    return routes.map(route => {
-        // We need to remove the path from the route because Angular doesn't call the matcher for empty paths.
-        const { path, matcher, ...newRoute } = route;
-        const matcherOrPath = matcher ?? path;
+export function conditionalRoutes(
+  routes: Routes,
+  condition: () => boolean,
+): Routes {
+  return routes.map((route) => {
+    // We need to remove the path from the route because Angular doesn't call the matcher for empty paths.
+    const { path, matcher, ...newRoute } = route;
+    const matcherOrPath = matcher ?? path;
 
-        if (matcherOrPath === undefined) {
-            throw new Error('Route defined without matcher nor path');
-        }
+    if (matcherOrPath === undefined) {
+      throw new Error("Route defined without matcher nor path");
+    }
 
-        return {
-            ...newRoute,
-            matcher: buildConditionalUrlMatcher(matcherOrPath, condition),
-        };
-    });
+    return {
+      ...newRoute,
+      matcher: buildConditionalUrlMatcher(matcherOrPath, condition),
+    };
+  });
 }
 
 /**
@@ -189,11 +221,13 @@ export function conditionalRoutes(routes: Routes, condition: () => boolean): Rou
  * @returns Whether the route doesn't have any content.
  */
 export function isEmptyRoute(route: Route): boolean {
-    return !('component' in route)
-        && !('loadComponent' in route)
-        && !('children' in route)
-        && !('loadChildren' in route)
-        && !('redirectTo' in route);
+  return (
+    !("component" in route) &&
+    !("loadComponent" in route) &&
+    !("children" in route) &&
+    !("loadChildren" in route) &&
+    !("redirectTo" in route)
+  );
 }
 
 /**
@@ -203,58 +237,60 @@ export function isEmptyRoute(route: Route): boolean {
  * @param token Routes injection token.
  * @returns Routes.
  */
-export function resolveModuleRoutes(injector: Injector, token: InjectionToken<ModuleRoutesConfig[]>): ModuleRoutes {
-    if (modulesRoutes.has(token)) {
-        return modulesRoutes.get(token) as ModuleRoutes;
+export function resolveModuleRoutes(
+  injector: Injector,
+  token: InjectionToken<ModuleRoutesConfig[]>,
+): ModuleRoutes {
+  if (modulesRoutes.has(token)) {
+    return modulesRoutes.get(token) as ModuleRoutes;
+  }
+
+  const configs = injector.get(token, []);
+  const routes = configs.map((config) => {
+    if (Array.isArray(config)) {
+      return {
+        children: [],
+        siblings: config,
+      };
     }
 
-    const configs = injector.get(token, []);
-    const routes = configs.map(config => {
-        if (Array.isArray(config)) {
-            return {
-                children: [],
-                siblings: config,
-            };
-        }
-
-        return {
-            children: config.children || [],
-            siblings: config.siblings || [],
-        };
-    });
-
-    const moduleRoutes = {
-        children: routes.map(r => r.children).flat(),
-        siblings: routes.map(r => r.siblings).flat(),
+    return {
+      children: config.children || [],
+      siblings: config.siblings || [],
     };
+  });
 
-    modulesRoutes.set(token, moduleRoutes);
+  const moduleRoutes = {
+    children: routes.map((r) => r.children).flat(),
+    siblings: routes.map((r) => r.siblings).flat(),
+  };
 
-    return moduleRoutes;
+  modulesRoutes.set(token, moduleRoutes);
+
+  return moduleRoutes;
 }
 
-export const APP_ROUTES = new InjectionToken('APP_ROUTES');
+export const APP_ROUTES = new InjectionToken("APP_ROUTES");
 
 /**
  * Module used to register routes at the root of the application.
  */
 @NgModule({
-    imports: [
-        RouterModule.forRoot([]),
-    ],
-    providers: [
-        { provide: ROUTES, multi: true, useFactory: buildAppRoutes, deps: [Injector] },
-    ],
+  imports: [RouterModule.forRoot([])],
+  providers: [
+    {
+      provide: ROUTES,
+      multi: true,
+      useFactory: buildAppRoutes,
+      deps: [Injector],
+    },
+  ],
 })
 export class AppRoutingModule {
-
-    static forChild(routes: Routes): ModuleWithProviders<AppRoutingModule> {
-        return {
-            ngModule: AppRoutingModule,
-            providers: [
-                { provide: APP_ROUTES, multi: true, useValue: routes },
-            ],
-        };
-    }
-
+  static forChild(routes: Routes): ModuleWithProviders<AppRoutingModule> {
+    return {
+      ngModule: AppRoutingModule,
+      providers: [{ provide: APP_ROUTES, multi: true, useValue: routes }],
+    };
+  }
 }
